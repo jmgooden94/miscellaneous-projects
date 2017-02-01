@@ -27,7 +27,7 @@ local turbineDesiredSpeedBonus = 25
 local autoAdjustControlRods    = true
 -- Control Rod Levels for the reactor found here: 
 -- http://br.sidoh.org/#reactor-design?length=7&width=7&height=7&activelyCooled=true&controlRodInsertion=100&layout=2O3R4O3R2O3RX5R3X5RX3R2O3R4O3R2O
-local controlRodLevels         = { 83, 65, 46, 28, 8}
+local controlRodLevels         = { 83, 66, 49, 32, 14, 0}
 
 -- The reactor program tick interval. Recommended range is between 0.5 and 1.0 seconds.
 local tickInterval             = 0.5
