@@ -13,7 +13,7 @@ local capacitorCount           = 4
 local turbineMaxFluidFlowRate  = 1900
 
 -- The maximum safe RPM for the turbines
-local turbineMaxSafeSpeed      = 1850
+local turbineMaxSafeSpeed      = 1900
 
 -- The program will keep the turbines spinning on the desired speed level. If the speed level of
 -- one turbine goes below this limit, the programm starts accelerating until the desired speed
