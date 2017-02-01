@@ -141,7 +141,6 @@ local function getMaxEnergyStored()
 	end
   end
   return total
-  error("unreachable block in getMaxEnergyStored")
 end
 
 local function getEnergyStored()
@@ -163,7 +162,6 @@ local function getEnergyStored()
 	end
   end
   return energy
-  error("unreachable block in getEnergyStored")
 end
 
 local function getEnergyStoredPercent()
@@ -197,14 +195,10 @@ end
 
 local function checkTurbineSpeed()
 	for index, turbine in pairs(turbines) do
-		if(turbines[index].getRotorSpeed() > turbineMaxSafeSpeed)
+		if(turbines[index].getRotorSpeed() > turbineMaxSafeSpeed) then
 			turbineAccelerating[index] = false
 			turbines[index].setActive(false)
 			turbines[index].setInductorEngaged(true)
-		end
-		else
-			turbines[index].setActive(true)
-			turbines[index].setFluidFlowRateMax(turbineMaxFluidFlowRate)
 		end
 	end
 end
