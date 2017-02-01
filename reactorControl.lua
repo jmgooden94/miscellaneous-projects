@@ -12,6 +12,9 @@ local capacitorCount           = 4
 -- The maximum fluid flow rate per turbine
 local turbineMaxFluidFlowRate  = 1900
 
+-- The maximum safe RPM for the turbines
+local turbineMaxSafeSpeed      = 1850
+
 -- The program will keep the turbines spinning on the desired speed level. If the speed level of
 -- one turbine goes below this limit, the programm starts accelerating until the desired speed
 -- level + the desired speed bonus is reached
@@ -44,20 +47,23 @@ end
 
 -- Internal constants
 -- Uses the internal energy buffer of the connected turbines
-local ENERGY_STORAGE_TYPE_INTERNAL           = 1
+local using_internal    = true
 -- EnderIO Capacitor Bank
-local ENERGY_STORAGE_TYPE_ENDER_IO           = 2
+local using_ender_io    = false
 -- Draconic Evolution Energy Core
-local ENERGY_STORAGE_TYPE_DRACONIC_EVOLUTION = 3
+local using_draconic    = false
 -- Thermal Expansion Energy Cell
-local ENERGY_STORAGE_TYPE_THERMAL_EXPANSION  = 4
+local using_thermal_exp = false
+
+-- Energy Storage
+local ender_io_cap_bank    = nil
+local draconic_energy_core = nil
+local thermal_exp_cell     = {}
 
 -- Internal variables
 local reactor              = nil
 local turbines             = {}
 local turbineAccelerating  = {}
-local energyStorage        = nil
-local energyStorageType    = 0
 
 -- Internal functions
 local function initPeripherals()
@@ -95,60 +101,68 @@ local function initPeripherals()
   -- ENDER IO
   local list = findPeripherals(TYPE_NAME_STORAGE_ENDER_IO)
   if (#list == 1) then
-    energyStorage = peripheral.wrap(list[1])
-    energyStorageType = ENERGY_STORAGE_TYPE_ENDER_IO
+    ender_io_cap_bank = peripheral.wrap(list[1])
+    using_ender_io = true
     print("Wrapped energy storage " .. list[1])
-    return
   end
   -- DRACONIC EVOLUTION
   local list = findPeripherals(TYPE_NAME_STORAGE_DRACONIC_EVOLUTION)
   if (#list == 1) then
-    energyStorage = peripheral.wrap(list[1])
-    energyStorageType = ENERGY_STORAGE_TYPE_DRACONIC_EVOLUTION
+    draconic_energy_core = peripheral.wrap(list[1])
+    using_draconic = true
     print("Wrapped energy storage " .. list[1])
-    return 
   end
   -- THERMAL EXPANSION
   local list = findPeripherals(TYPE_NAME_STORAGE_THERMAL_EXPANSION)
-  if (#list == 1) then
-    energyStorage = peripheral.wrap(list[1])
-    energyStorageType = ENERGY_STORAGE_TYPE_THERMAL_EXPANSION
+  if (#list > 0) then
+    for index, cellName in pairs(list) do
+		table.insert(thermal_exp_cell, peripheral.wrap(list[index]))
+	end
+	using_thermal_exp = true
     print("Wrapped energy storage " .. list[1])
-    return 
   end
-  energyStorageType = ENERGY_STORAGE_TYPE_INTERNAL
   print("Using internal energy storage")
 end
 
 local function getMaxEnergyStored()
-  if (energyStorageType == ENERGY_STORAGE_TYPE_INTERNAL) then
-    return 1000000 * #turbines 
-  elseif (energyStorageType == ENERGY_STORAGE_TYPE_ENDER_IO) then
-    return energyStorage.getMaxEnergyStored() * capacitorCount 
-  elseif (energyStorageType == ENERGY_STORAGE_TYPE_DRACONIC_EVOLUTION) then
-    return energyStorage.getMaxEnergyStored()
-  elseif (energyStorageType == ENERGY_STORAGE_TYPE_THERMAL_EXPANSION) then
-	-- TODO: make sure this works
-	return energyStorage.getMaxEnergyStored()
+  local total = 0
+  if (using_internal) then
+    total = total + (1000000 * #turbines)
   end
+  if (using_ender_io) then
+    total = total + ender_io_cap_bank.getMaxEnergyStored() * capacitorCount
+  end	
+  if (using_draconic) then
+    total = total + draconic_energy_core.getMaxEnergyStored()
+  end
+  if (using_thermal_exp) then
+	for index, cellName in pairs(thermal_exp_cell) do
+		total = total + thermal_exp_cell[index].getMaxEnergyStored()
+	end
+  end
+  return total
   error("unreachable block in getMaxEnergyStored")
 end
 
 local function getEnergyStored()
-  if (energyStorageType == ENERGY_STORAGE_TYPE_INTERNAL) then
-    local energy = 0
+  local energy = 0
+  if (using_internal) then
     for index, turbine in pairs(turbines) do
       energy = energy + turbines[index].getEnergyStored()
     end
-    return energy
-  elseif (energyStorageType == ENERGY_STORAGE_TYPE_ENDER_IO) then
-    return energyStorage.getEnergyStored() * capacitorCount
-  elseif (energyStorageType == ENERGY_STORAGE_TYPE_DRACONIC_EVOLUTION) then
-    return energyStorage.getEnergyStored()
-  elseif (energyStorageType == ENERGY_STORAGE_TYPE_THERMAL_EXPANSION) then
-    -- TODO: make sure this works
-	return energyStorage.getEnergyStored()
   end
+  if (using_ender_io) then
+    energy = energy + (ender_io_cap_bank.getEnergyStored() * capacitorCount)
+  end
+  if (using_draconic) then
+    energy = energy + draconic_energy_core.getEnergyStored()
+  end 
+  if(using_thermal_exp) then
+	for index, cellName in pairs(thermal_exp_cell) do
+		energy = energy + thermal_exp_cell[index].getEnergyStored()
+	end
+  end
+  return energy
   error("unreachable block in getEnergyStored")
 end
 
@@ -179,6 +193,20 @@ local function turbinesSetCoilsEngaged(engaged)
   for index, turbine in pairs(turbines) do
     turbine.setInductorEngaged(engaged)
   end
+end
+
+local function checkTurbineSpeed()
+	for index, turbine in pairs(turbines) do
+		if(turbines[index].getRotorSpeed() > turbineMaxSafeSpeed)
+			turbineAccelerating[index] = false
+			turbines[index].setActive(false)
+			turbines[index].setInductorEngaged(true)
+		end
+		else
+			turbines[index].setActive(true)
+			turbines[index].setFluidFlowRateMax(turbineMaxFluidFlowRate)
+		end
+	end
 end
 
 -- Main
@@ -242,6 +270,7 @@ local function mainTick()
             reactor.setActive(true) 
           end
         elseif ((not doAccelerate) and isAccelerating) then
+		  checkTurbineSpeed()
           isAccelerating = false
           if (not autoAdjustControlRods) then
             reactor.setActive(false) 
