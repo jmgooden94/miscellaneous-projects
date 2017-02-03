@@ -282,7 +282,6 @@ local function mainTick()
 end
 
 local function main()
-  maxEnergy = getMaxEnergyStored()
   local ticks = 0
   initPeripherals()
   if (autoAdjustControlRods) then
@@ -296,6 +295,7 @@ local function main()
     reactor.setActive(false)
   end
   turbinesSetCoilsEngaged(false)
+  maxEnergy = getMaxEnergyStored()
   while (true) do
     ticks = ticks + 1
     mainTick()
