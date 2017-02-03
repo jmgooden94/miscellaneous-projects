@@ -32,6 +32,8 @@ local controlRodLevels         = { 83, 66, 49, 32, 14, 0}
 -- The reactor program tick interval. Recommended range is between 0.5 and 1.0 seconds.
 local tickInterval             = 0.5
 
+local maxEnergy                = 0
+
 --================================================================================================--
 
 -- Helper functions
@@ -72,7 +74,7 @@ local function initPeripherals()
   local TYPE_NAME_TURBINE                    = "BigReactors-Turbine"
   local TYPE_NAME_STORAGE_ENDER_IO           = "tile_blockcapacitorbank_name"
   local TYPE_NAME_STORAGE_DRACONIC_EVOLUTION = "draconic_rf_storage"
-  local TYPE_NAME_STORAGE_THERMAL_EXPANSION  = "tile_thermalexpansion_cell_reinforced"
+  local TYPE_NAME_STORAGE_THERMAL_EXPANSION  = "tile_thermalexpansion_cell_reinforced_name"
   -- Reactor
   local list = findPeripherals(TYPE_NAME_REACTOR)
   if (#list < 1) then
@@ -165,9 +167,8 @@ end
 
 local function getEnergyStoredPercent()
   local current = getEnergyStored()
-  local max = getMaxEnergyStored()
-  print("Current power: " ..current.. " of " ..max)
-  return math.floor(current / max * 100)
+  print("Current power: " ..current.. " of " ..maxEnergy)
+  return math.floor(current / maxEnergy * 100)
 end
 
 local function reactorSetControlRodLevelByNumberOfActiveTurbines(numTurbines)
@@ -281,6 +282,7 @@ local function mainTick()
 end
 
 local function main()
+  maxEnergy = getMaxEnergyStored()
   local ticks = 0
   initPeripherals()
   if (autoAdjustControlRods) then
