@@ -199,6 +199,7 @@ local function checkTurbineSpeed()
 			turbineAccelerating[index] = false
 			turbines[index].setActive(false)
 			turbines[index].setInductorEngaged(true)
+			print("Turbine " ..index.. " is overspeed. Slowing down.")
 		end
 	end
 end
@@ -278,6 +279,7 @@ local function mainTick()
 end
 
 local function main()
+  ticks = 0
   initPeripherals()
   if (autoAdjustControlRods) then
     if (#turbines > #controlRodLevels) then
@@ -291,7 +293,9 @@ local function main()
   end
   turbinesSetCoilsEngaged(false)
   while (true) do
+    ticks = ticks + 1
     mainTick()
+    print("Program running for " ..ticks.. " ticks")
     local loopTimerId = os.startTimer(tickInterval) 
     while (true) do
       local event, timerId = os.pullEvent("timer")    
