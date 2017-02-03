@@ -73,7 +73,7 @@ local function initPeripherals()
   local TYPE_NAME_STORAGE_ENDER_IO           = "tile_blockcapacitorbank_name"
   local TYPE_NAME_STORAGE_DRACONIC_EVOLUTION = "draconic_rf_storage"
   -- TODO: figure out what this is supposed to be
-  local TYPE_NAME_STORAGE_THERMAL_EXPANSION  = "something_cell"
+  local TYPE_NAME_STORAGE_THERMAL_EXPANSION  = "tile_thermalexpansion_cell"
   -- Reactor
   local list = findPeripherals(TYPE_NAME_REACTOR)
   if (#list < 1) then
