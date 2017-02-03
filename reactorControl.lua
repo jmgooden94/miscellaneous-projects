@@ -267,7 +267,6 @@ local function mainTick()
             reactor.setActive(true) 
           end
         elseif ((not doAccelerate) and isAccelerating) then
-		  checkTurbineSpeed()
           isAccelerating = false
           if (not autoAdjustControlRods) then
             reactor.setActive(false) 
@@ -275,6 +274,7 @@ local function mainTick()
         end
       end
     end
+    checkTurbineSpeed()
     print("Turbines online: " .. tostring(activeTurbines))
     reactorSetControlRodLevelByNumberOfActiveTurbines(activeTurbines)
     print("Control rod lvl: " .. tostring(reactor.getControlRodLevel(1)))
@@ -305,6 +305,7 @@ local function main()
         break
       end
     end
+   print("\n")
   end
 end
 
