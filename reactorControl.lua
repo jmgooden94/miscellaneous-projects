@@ -32,8 +32,6 @@ local controlRodLevels         = { 83, 66, 49, 32, 14, 0}
 -- The reactor program tick interval. Recommended range is between 0.5 and 1.0 seconds.
 local tickInterval             = 0.5
 
-local maxEnergy                = 0
-
 --================================================================================================--
 
 -- Helper functions
@@ -167,8 +165,9 @@ end
 
 local function getEnergyStoredPercent()
   local current = getEnergyStored()
-  print("Current power: " ..current.. " of " ..maxEnergy)
-  return math.floor(current / maxEnergy * 100)
+  local max = getMaxEnergyStored()
+  print("Current power: " ..current.. " of " ..max)
+  return math.floor(current / max * 100)
 end
 
 local function reactorSetControlRodLevelByNumberOfActiveTurbines(numTurbines)
@@ -295,7 +294,6 @@ local function main()
     reactor.setActive(false)
   end
   turbinesSetCoilsEngaged(false)
-  maxEnergy = getMaxEnergyStored()
   while (true) do
     ticks = ticks + 1
     mainTick()
