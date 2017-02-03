@@ -72,8 +72,7 @@ local function initPeripherals()
   local TYPE_NAME_TURBINE                    = "BigReactors-Turbine"
   local TYPE_NAME_STORAGE_ENDER_IO           = "tile_blockcapacitorbank_name"
   local TYPE_NAME_STORAGE_DRACONIC_EVOLUTION = "draconic_rf_storage"
-  -- TODO: figure out what this is supposed to be
-  local TYPE_NAME_STORAGE_THERMAL_EXPANSION  = "tile_thermalexpansion_cell"
+  local TYPE_NAME_STORAGE_THERMAL_EXPANSION  = "tile_thermalexpansion_cell_reinforced"
   -- Reactor
   local list = findPeripherals(TYPE_NAME_REACTOR)
   if (#list < 1) then
@@ -165,7 +164,10 @@ local function getEnergyStored()
 end
 
 local function getEnergyStoredPercent()
-  return math.floor(getEnergyStored() / getMaxEnergyStored() * 100)
+  local current = getEnergyStored()
+  local max = getMaxEnergyStored()
+  print("Current power: " ..current.. " of " ..max)
+  return math.floor(current / max * 100)
 end
 
 local function reactorSetControlRodLevelByNumberOfActiveTurbines(numTurbines)
@@ -279,7 +281,7 @@ local function mainTick()
 end
 
 local function main()
-  ticks = 0
+  local ticks = 0
   initPeripherals()
   if (autoAdjustControlRods) then
     if (#turbines > #controlRodLevels) then
